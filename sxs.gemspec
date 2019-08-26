@@ -8,7 +8,7 @@ require 'sxs/version'
 
 Gem::Specification.new do |spec|
   spec.author      = 'Washington Botelho'
-  spec.description = 'SNS/SQS wrapper to make `development` (Redis) and `test` (Memory) environment transparent.'
+  spec.description = 'SNS/SQS wrapper to make development (Redis) and test (Memory) environment transparent.'
   spec.email       = 'wbotelhos@gmail.com'
   spec.files       = Dir['lib/**/*'] + %w[CHANGELOG.md LICENSE README.md]
   spec.homepage    = 'https://github.com/wbotelhos/sxs'
