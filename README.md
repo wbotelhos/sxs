@@ -5,7 +5,7 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/cc5efe8b06bc1d5e9e8a/maintainability)](https://codeclimate.com/github/wbotelhos/sxs/maintainability)
 [![Patreon](https://img.shields.io/badge/donate-%3C3-brightgreen.svg)](https://www.patreon.com/wbotelhos)
 
-SNS and SQS Wrapper.
+SNS/SQS wrapper to make `development` (Redis) and `test` (Memory) environment transparent.
 
 ## Install
 
