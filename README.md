@@ -30,10 +30,11 @@ SXS::Publisher.new('some_key', provider: :redis).publish({ body: 'value' }.to_js
 SXS::Publisher.new('some_key', provider: :memory).publish({ body: 'value' }.to_json)
 ```
 
-If you do not specify the `provider` you will get:
+On `development` and `test` environment `provider` be overwrited for the following:
 
 ```ruby
 development: :redis
-production: ArgumentError
 test: :memory
 ```
+
+To avoid this ovewrite you can specify the provider via ENV `SXS_PROVIDER`. This will overwrites `production` too.
