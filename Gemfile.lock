@@ -43,6 +43,7 @@ GEM
       byebug (~> 11.0)
       pry (~> 0.10)
     rainbow (3.0.0)
+    rake (12.3.3)
     redis (4.1.2)
     rspec (3.8.0)
       rspec-core (~> 3.8.0)
@@ -75,6 +76,7 @@ PLATFORMS
 DEPENDENCIES
   fakeredis
   pry-byebug
+  rake
   rspec
   rubocop-rspec
   sxs!
