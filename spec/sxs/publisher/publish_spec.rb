@@ -6,96 +6,344 @@ RSpec.describe SXS::Publisher, '#publish' do
   let!(:body) { { key: 'value' }.to_json }
   let!(:queue_url) { 'queue_url' }
 
-  context 'when provider is given' do
-    context 'when provider is sqs' do
-      let(:provider) { :sqs }
+  after do
+    ENV['RAILS_ENV'] = 'test'
 
-      let!(:sqs) { instance_spy 'SXS::Publishers::SQS' }
-
-      before do
-        allow(SXS::Publishers::SQS).to receive(:new).with(queue_url).and_return sqs
-      end
-
-      it 'publishes the message' do
-        publisher.publish body
-
-        expect(sqs).to have_received(:publish).with(body)
-      end
-    end
-
-    context 'when provider is redis' do
-      let(:provider) { :redis }
-
-      let!(:redis) { instance_spy 'SXS::Publishers::Redis' }
-
-      before do
-        allow(SXS::Publishers::Redis).to receive(:new).with(queue_url).and_return redis
-      end
-
-      it 'publishes the message' do
-        publisher.publish body
-
-        expect(redis).to have_received(:publish).with(body)
-      end
-    end
-
-    context 'when provider is memory' do
-      let(:provider) { :memory }
-
-      let!(:memory) { instance_spy 'SXS::Publishers::Memory' }
-
-      before do
-        allow(SXS::Publishers::Memory).to receive(:new).with(queue_url).and_return memory
-      end
-
-      it 'publishes the message' do
-        publisher.publish body
-
-        expect(memory).to have_received(:publish).with(body)
-      end
-    end
+    ENV.delete 'SXS_PROVIDER'
   end
 
-  context 'when provider is not given' do
-    let(:provider) { nil }
+  context 'when provider is sqs' do
+    let(:provider) { :sqs }
 
     context 'when rails env is development' do
-      let!(:redis) { instance_spy 'SXS::Publishers::Redis' }
+      before { ENV['RAILS_ENV'] = 'development' }
 
-      before do
-        allow(ENV).to receive(:[]).with('RAILS_ENV').and_return 'development'
-        allow(SXS::Publishers::Redis).to receive(:new).with(queue_url).and_return redis
+      context 'when sxs provider is not setted' do
+        let!(:redis) { instance_spy 'SXS::Publishers::Redis' }
+
+        before do
+          allow(SXS::Publishers::Redis).to receive(:new).with(queue_url).and_return redis
+        end
+
+        it 'overwrites with redis' do
+          publisher.publish body
+
+          expect(redis).to have_received(:publish).with(body)
+        end
       end
 
-      it 'publishes the message on redis' do
-        publisher.publish body
+      context 'when sxs provider is setted' do
+        let!(:memory) { instance_spy 'SXS::Publishers::Memory' }
 
-        expect(redis).to have_received(:publish).with(body)
+        before do
+          allow(SXS::Publishers::Memory).to receive(:new).with(queue_url).and_return memory
+
+          ENV['SXS_PROVIDER'] = 'memory'
+        end
+
+        it 'is used' do
+          publisher.publish body
+
+          expect(memory).to have_received(:publish).with(body)
+        end
       end
     end
 
     context 'when rails env is production' do
-      let!(:error) { 'missing provider: redis, sqs, sns or memory' }
+      before { ENV['RAILS_ENV'] = 'production' }
 
-      before { allow(ENV).to receive(:[]).with('RAILS_ENV').and_return 'production' }
+      context 'when sxs provider is not setted' do
+        let!(:sqs) { instance_spy 'SXS::Publishers::SQS' }
 
-      it 'raises' do
-        expect { publisher.publish body }.to raise_error ArgumentError, error
+        before do
+          allow(SXS::Publishers::SQS).to receive(:new).with(queue_url).and_return sqs
+        end
+
+        it 'uses the given provider' do
+          publisher.publish body
+
+          expect(sqs).to have_received(:publish).with(body)
+        end
+      end
+
+      context 'when sxs provider is setted' do
+        let!(:redis) { instance_spy 'SXS::Publishers::Redis' }
+
+        before do
+          allow(SXS::Publishers::Redis).to receive(:new).with(queue_url).and_return redis
+
+          ENV['SXS_PROVIDER'] = 'redis'
+        end
+
+        it 'is used' do
+          publisher.publish body
+
+          expect(redis).to have_received(:publish).with(body)
+        end
       end
     end
 
     context 'when rails env is test' do
-      let!(:memory) { instance_spy 'SXS::Publishers::Memory' }
+      before { ENV['RAILS_ENV'] = 'test' }
 
-      before do
-        allow(ENV).to receive(:[]).with('RAILS_ENV').and_return 'test'
-        allow(SXS::Publishers::Memory).to receive(:new).with(queue_url).and_return memory
+      context 'when sxs provider is not setted' do
+        let!(:memory) { instance_spy 'SXS::Publishers::Memory' }
+
+        before do
+          allow(SXS::Publishers::Memory).to receive(:new).with(queue_url).and_return memory
+        end
+
+        it 'overwrites with memory' do
+          publisher.publish body
+
+          expect(memory).to have_received(:publish).with(body)
+        end
       end
 
-      it 'publishes the message on memory' do
-        publisher.publish body
+      context 'when sxs provider is setted' do
+        let!(:redis) { instance_spy 'SXS::Publishers::Redis' }
 
-        expect(memory).to have_received(:publish).with(body)
+        before do
+          allow(SXS::Publishers::Redis).to receive(:new).with(queue_url).and_return redis
+
+          ENV['SXS_PROVIDER'] = 'redis'
+        end
+
+        it 'is used' do
+          publisher.publish body
+
+          expect(redis).to have_received(:publish).with(body)
+        end
+      end
+    end
+  end
+
+  context 'when provider is redis' do
+    let(:provider) { :redis }
+
+    context 'when rails env is development' do
+      before { ENV['RAILS_ENV'] = 'development' }
+
+      context 'when sxs provider is not setted' do
+        let!(:redis) { instance_spy 'SXS::Publishers::Redis' }
+
+        before do
+          allow(SXS::Publishers::Redis).to receive(:new).with(queue_url).and_return redis
+        end
+
+        it 'overwrites with redis' do
+          publisher.publish body
+
+          expect(redis).to have_received(:publish).with(body)
+        end
+      end
+
+      context 'when sxs provider is setted' do
+        let!(:memory) { instance_spy 'SXS::Publishers::Memory' }
+
+        before do
+          allow(SXS::Publishers::Memory).to receive(:new).with(queue_url).and_return memory
+
+          ENV['SXS_PROVIDER'] = 'memory'
+        end
+
+        it 'is used' do
+          publisher.publish body
+
+          expect(memory).to have_received(:publish).with(body)
+        end
+      end
+    end
+
+    context 'when rails env is production' do
+      before { ENV['RAILS_ENV'] = 'production' }
+
+      context 'when sxs provider is not setted' do
+        let!(:redis) { instance_spy 'SXS::Publishers::Redis' }
+
+        before do
+          allow(SXS::Publishers::Redis).to receive(:new).with(queue_url).and_return redis
+        end
+
+        it 'uses the given provider' do
+          publisher.publish body
+
+          expect(redis).to have_received(:publish).with(body)
+        end
+      end
+
+      context 'when sxs provider is setted' do
+        let!(:memory) { instance_spy 'SXS::Publishers::Memory' }
+
+        before do
+          allow(SXS::Publishers::Memory).to receive(:new).with(queue_url).and_return memory
+
+          ENV['SXS_PROVIDER'] = 'memory'
+        end
+
+        it 'is used' do
+          publisher.publish body
+
+          expect(memory).to have_received(:publish).with(body)
+        end
+      end
+    end
+
+    context 'when rails env is test' do
+      before do
+        ENV['RAILS_ENV'] = 'test'
+      end
+
+      after do
+        ENV['RAILS_ENV'] = 'test'
+      end
+
+      context 'when sxs provider is not setted' do
+        let!(:memory) { instance_spy 'SXS::Publishers::Memory' }
+
+        before do
+          allow(SXS::Publishers::Memory).to receive(:new).with(queue_url).and_return memory
+        end
+
+        it 'overwrites with memory' do
+          publisher.publish body
+
+          expect(memory).to have_received(:publish).with(body)
+        end
+      end
+
+      context 'when sxs provider is setted' do
+        let!(:memory) { instance_spy 'SXS::Publishers::Memory' }
+
+        before do
+          allow(SXS::Publishers::Memory).to receive(:new).with(queue_url).and_return memory
+        end
+
+        before do
+          ENV['SXS_PROVIDER'] = 'memory'
+        end
+
+        after do
+          ENV.delete 'SXS_PROVIDER'
+        end
+
+        it 'is used' do
+          publisher.publish body
+
+          expect(memory).to have_received(:publish).with(body)
+        end
+      end
+    end
+  end
+
+  context 'when provider is memory' do
+    let(:provider) { :memory }
+
+    context 'when rails env is development' do
+      before do
+        ENV['RAILS_ENV'] = 'development'
+      end
+
+      after do
+        ENV['RAILS_ENV'] = 'test'
+      end
+
+      context 'when sxs provider is not setted' do
+        let!(:redis) { instance_spy 'SXS::Publishers::Redis' }
+
+        before do
+          allow(SXS::Publishers::Redis).to receive(:new).with(queue_url).and_return redis
+        end
+
+        it 'overwrites with redis' do
+          publisher.publish body
+
+          expect(redis).to have_received(:publish).with(body)
+        end
+      end
+
+      context 'when sxs provider is setted' do
+        let!(:redis) { instance_spy 'SXS::Publishers::Redis' }
+
+        before do
+          allow(SXS::Publishers::Redis).to receive(:new).with(queue_url).and_return redis
+
+          ENV['SXS_PROVIDER'] = 'redis'
+        end
+
+        it 'is used' do
+          publisher.publish body
+
+          expect(redis).to have_received(:publish).with(body)
+        end
+      end
+    end
+
+    context 'when rails env is production' do
+      before { ENV['RAILS_ENV'] = 'production' }
+
+      context 'when sxs provider is not setted' do
+        let!(:memory) { instance_spy 'SXS::Publishers::Memory' }
+
+        before do
+          allow(SXS::Publishers::Memory).to receive(:new).with(queue_url).and_return memory
+        end
+
+        it 'uses the given provider' do
+          publisher.publish body
+
+          expect(memory).to have_received(:publish).with(body)
+        end
+      end
+
+      context 'when sxs provider is setted' do
+        let!(:redis) { instance_spy 'SXS::Publishers::Redis' }
+
+        before do
+          allow(SXS::Publishers::Redis).to receive(:new).with(queue_url).and_return redis
+
+          ENV['SXS_PROVIDER'] = 'redis'
+        end
+
+        it 'is used' do
+          publisher.publish body
+
+          expect(redis).to have_received(:publish).with(body)
+        end
+      end
+    end
+
+    context 'when rails env is test' do
+      before { ENV['RAILS_ENV'] = 'test' }
+
+      context 'when sxs provider is not setted' do
+        let!(:memory) { instance_spy 'SXS::Publishers::Memory' }
+
+        before do
+          allow(SXS::Publishers::Memory).to receive(:new).with(queue_url).and_return memory
+        end
+
+        it 'overwrites with memory' do
+          publisher.publish body
+
+          expect(memory).to have_received(:publish).with(body)
+        end
+      end
+
+      context 'when sxs provider is setted' do
+        let!(:redis) { instance_spy 'SXS::Publishers::Redis' }
+
+        before do
+          allow(SXS::Publishers::Redis).to receive(:new).with(queue_url).and_return redis
+
+          ENV['SXS_PROVIDER'] = 'redis'
+        end
+
+        it 'is used' do
+          publisher.publish body
+
+          expect(redis).to have_received(:publish).with(body)
+        end
       end
     end
   end

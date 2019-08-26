@@ -2,7 +2,7 @@
 
 module SXS
   class Publisher
-    def initialize(queue_url, provider: nil)
+    def initialize(queue_url, provider:)
       @provider  = provider
       @queue_url = queue_url
     end
@@ -21,18 +21,26 @@ module SXS
       SXS::Publishers::Memory
     end
 
-    def publisher
-      @publisher ||= provider.new(@queue_url)
-    end
-
     def provider
-      return { memory: memory, redis: redis, sqs: sqs }[@provider.to_sym] if @provider
+      return provider_select(ENV['SXS_PROVIDER']) unless ENV['SXS_PROVIDER'].nil?
 
-      if environment == 'production'
-        raise ArgumentError, 'missing provider: redis, sqs, sns or memory'
-      end
+      return provider_select(@provider) if environment == 'production'
 
       { 'development' => redis, 'test' => memory }[environment]
+    end
+
+    def provider_select(name)
+      value = { memory: memory, redis: redis, sqs: sqs }[name&.to_sym]
+
+      if value.nil?
+        raise ArgumentError, 'Missing provider! Availables: :memory, :redis, :sns or :sqs'
+      end
+
+      value
+    end
+
+    def publisher
+      @publisher ||= provider.new(@queue_url)
     end
 
     def redis
