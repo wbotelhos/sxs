@@ -24,10 +24,10 @@ rails g sxs:install
 ## Usage
 
 ```ruby
-SXS::Publisher.new('sqs_url', provider: :sqs).publish(body: 'value')
-SXS::Publisher.new('sns_url', provider: :sns).publish(body: 'value')
-SXS::Publisher.new('some_key', provider: :redis).publish(body: 'value')
-SXS::Publisher.new('some_key', provider: :memory).publish(body: 'value')
+SXS::Publisher.new('sqs_url', provider: :sqs).publish({ body: 'value' }.to_json)
+SXS::Publisher.new('sns_url', provider: :sns).publish({ body: 'value' }.to_json)
+SXS::Publisher.new('some_key', provider: :redis).publish({ body: 'value' }.to_json)
+SXS::Publisher.new('some_key', provider: :memory).publish({ body: 'value' }.to_json)
 ```
 
 If you do not specify the `provider` you will get:
