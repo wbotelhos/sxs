@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    sxs (0.2.0)
+    sxs (0.2.1)
       aws-sdk-sns
       aws-sdk-sqs
       redis
