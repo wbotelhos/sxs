@@ -3,6 +3,8 @@
 module SXS
   module Publishers
     class Redis
+      require 'redis'
+
       def initialize(queue_url)
         @queue_url = queue_url
       end
